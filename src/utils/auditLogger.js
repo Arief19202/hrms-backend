@@ -14,11 +14,31 @@ const logAudit = async (req, { action, entity, entityId, details }) => {
         const user = req?.user || {};
         const ipAddress = getClientIp(req);
 
+        const userId = user.userId || user.id || null;
+        let userEmail = user.email || (req?.body?.email ? req.body.email : null);
+        let userName = user.name || null;
+        let userRole = user.role || "unknown";
+
+        // Fallback user lookup if email or name missing
+        if ((!userEmail || !userName) && userId) {
+            try {
+                const userModel = require("../models/userModel");
+                const u = await userModel.findById(userId);
+                if (u) {
+                    userEmail = userEmail || u.email;
+                    userName = userName || u.name;
+                    userRole = userRole !== "unknown" ? userRole : u.role;
+                }
+            } catch (e) {
+                // Silently ignore fallback error
+            }
+        }
+
         await auditLogModel.create({
-            user_id: user.userId || user.id || null,
-            user_email: user.email || (req?.body?.email ? req.body.email : "system@hrms.internal"),
-            user_name: user.name || user.email || "System User",
-            user_role: user.role || "unknown",
+            user_id: userId ? String(userId) : null,
+            user_email: userEmail || "system@hrms.internal",
+            user_name: userName || userEmail || "System User",
+            user_role: userRole,
             action,
             entity,
             entity_id: entityId ? String(entityId) : null,
