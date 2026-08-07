@@ -197,7 +197,11 @@ const findByUserId = async (userId) => {
             email,
             employee_id,
             employees (
-                *
+                *,
+                departments (
+                    id,
+                    name
+                )
             )
         `)
         .eq("id", userId)
@@ -219,7 +223,13 @@ const findByUserId = async (userId) => {
     if (user.email) {
         const { data: matchedEmp } = await supabase
             .from("employees")
-            .select("*")
+            .select(`
+                *,
+                departments (
+                    id,
+                    name
+                )
+            `)
             .eq("email", user.email)
             .maybeSingle();
 
@@ -263,7 +273,13 @@ const findByUserId = async (userId) => {
             used_annual_leave: 0,
             total_annual_leave: 14
         }])
-        .select()
+        .select(`
+            *,
+            departments (
+                id,
+                name
+            )
+        `)
         .single();
 
     if (createError) {
