@@ -8,6 +8,7 @@ const {
     updateAttendance,
     deleteAttendance
 } = require("../services/attendanceService");
+const { logAudit } = require("../utils/auditLogger");
 
 const getAttendances = async (req, res, next) => {
     try {
@@ -52,6 +53,13 @@ const addAttendance = async (req, res, next) => {
 
         const attendance = await createAttendance(req.body);
 
+        logAudit(req, {
+            action: "CREATE_ATTENDANCE",
+            entity: "ATTENDANCE",
+            entityId: attendance.id,
+            details: { employee_id: attendance.employee_id, date: attendance.date, status: attendance.status }
+        });
+
         res.status(201).json({
             success: true,
             message: "Attendance created successfully",
@@ -78,6 +86,13 @@ const editAttendance = async (req, res, next) => {
             });
         }
 
+        logAudit(req, {
+            action: "UPDATE_ATTENDANCE",
+            entity: "ATTENDANCE",
+            entityId: attendance.id,
+            details: { updatedFields: Object.keys(req.body) }
+        });
+
         res.status(200).json({
             success: true,
             message: "Attendance updated successfully",
@@ -100,6 +115,13 @@ const removeAttendance = async (req, res, next) => {
                 message: "Attendance not found"
             });
         }
+
+        logAudit(req, {
+            action: "DELETE_ATTENDANCE",
+            entity: "ATTENDANCE",
+            entityId: req.params.id,
+            details: { attendance }
+        });
 
         res.status(200).json({
             success: true,
@@ -170,6 +192,13 @@ const employeeCheckIn = async (req, res, next) => {
         const timeZone = req.headers["x-timezone"] || req.body?.timeZone;
         const attendance = await checkIn(employeeId, timeZone);
 
+        logAudit(req, {
+            action: "CLOCK_IN",
+            entity: "ATTENDANCE",
+            entityId: attendance?.id,
+            details: { clock_in: attendance?.clock_in, date: attendance?.date }
+        });
+
         return res.status(201).json({
             success: true,
             message: "Check in successful",
@@ -197,6 +226,13 @@ const employeeCheckOut = async (req, res, next) => {
 
         const timeZone = req.headers["x-timezone"] || req.body?.timeZone;
         const attendance = await checkOut(employeeId, timeZone);
+
+        logAudit(req, {
+            action: "CLOCK_OUT",
+            entity: "ATTENDANCE",
+            entityId: attendance?.id,
+            details: { clock_out: attendance?.clock_out, work_hours: attendance?.work_hours }
+        });
 
         return res.status(200).json({
             success: true,

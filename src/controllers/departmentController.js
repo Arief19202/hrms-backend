@@ -5,6 +5,7 @@ const {
     updateDepartment,
     deleteDepartment
 } = require("../services/departmentService");
+const { logAudit } = require("../utils/auditLogger");
 
 const getDepartments = async (req, res, next) => {
     try {
@@ -49,6 +50,13 @@ const addDepartment = async (req, res, next) => {
 
         const department = await createDepartment(req.body);
 
+        logAudit(req, {
+            action: "CREATE_DEPARTMENT",
+            entity: "DEPARTMENT",
+            entityId: department.id,
+            details: { name: department.name }
+        });
+
         res.status(201).json({
             success: true,
             message: "Department created successfully",
@@ -75,6 +83,13 @@ const editDepartment = async (req, res, next) => {
             });
         }
 
+        logAudit(req, {
+            action: "UPDATE_DEPARTMENT",
+            entity: "DEPARTMENT",
+            entityId: department.id,
+            details: { name: department.name, updatedFields: Object.keys(req.body) }
+        });
+
         res.status(200).json({
             success: true,
             message: "Department updated successfully",
@@ -87,26 +102,10 @@ const editDepartment = async (req, res, next) => {
 };
 
 const removeDepartment = async (req, res, next) => {
-    try {
-
-        const department = await deleteDepartment(req.params.id);
-
-        if (!department) {
-            return res.status(404).json({
-                success: false,
-                message: "Department not found"
-            });
-        }
-
-        res.status(200).json({
-            success: true,
-            message: "Department deleted successfully",
-            data: department
-        });
-
-    } catch (error) {
-        next(error);
-    }
+    return res.status(400).json({
+        success: false,
+        message: "Departments cannot be deleted in this company."
+    });
 };
 
 module.exports = {

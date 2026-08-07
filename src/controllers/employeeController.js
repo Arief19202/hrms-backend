@@ -6,6 +6,7 @@ const {
     updateEmployee,
     deleteEmployee
 } = require("../services/employeeService");
+const { logAudit } = require("../utils/auditLogger");
 
 const getEmployees = async (req, res, next) => {
     try {
@@ -50,6 +51,13 @@ const addEmployee = async (req, res, next) => {
 
         const newEmployee = await createEmployee(req.body);
 
+        logAudit(req, {
+            action: "CREATE_EMPLOYEE",
+            entity: "EMPLOYEE",
+            entityId: newEmployee.id,
+            details: { name: newEmployee.name, email: newEmployee.email, code: newEmployee.employee_code }
+        });
+
         return res.status(201).json({
             success: true,
             message: "Employee created successfully",
@@ -76,6 +84,13 @@ const editEmployee = async (req, res, next) => {
             });
         }
 
+        logAudit(req, {
+            action: "UPDATE_EMPLOYEE",
+            entity: "EMPLOYEE",
+            entityId: updatedEmployee.id,
+            details: { updatedFields: Object.keys(req.body), name: updatedEmployee.name }
+        });
+
         return res.status(200).json({
             success: true,
             message: "Employee updated successfully",
@@ -98,6 +113,13 @@ const removeEmployee = async (req, res, next) => {
                 message: "Employee not found"
             });
         }
+
+        logAudit(req, {
+            action: "DELETE_EMPLOYEE",
+            entity: "EMPLOYEE",
+            entityId: req.params.id,
+            details: { deletedEmployee }
+        });
 
         return res.status(200).json({
             success: true,

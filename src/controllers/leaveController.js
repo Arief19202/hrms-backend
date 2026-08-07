@@ -7,6 +7,7 @@ const {
     deleteLeave,
     updateLeaveStatus: updateLeaveStatusService
 } = require("../services/leaveService");
+const { logAudit } = require("../utils/auditLogger");
 
 const getLeaves = async (req, res, next) => {
     try {
@@ -120,6 +121,13 @@ const addLeaveRequest = async (req, res, next) => {
             rejection_reason: null
         });
 
+        logAudit(req, {
+            action: "CREATE_LEAVE",
+            entity: "LEAVE",
+            entityId: leave.id,
+            details: { leave_type, start_date, end_date, total_days, reason }
+        });
+
         return res.status(201).json({
             success: true,
             message: "Leave request created successfully",
@@ -195,6 +203,13 @@ const updateLeaveStatus = async (req, res, next) => {
             });
         }
 
+        logAudit(req, {
+            action: status === "approved" ? "APPROVE_LEAVE" : "REJECT_LEAVE",
+            entity: "LEAVE",
+            entityId: leave.id,
+            details: { status, reviewed_by, rejection_reason }
+        });
+
         return res.status(200).json({
             success: true,
             message: `Leave request ${status} successfully`,
@@ -225,6 +240,13 @@ const editLeave = async (req, res, next) => {
             req.body
         );
 
+        logAudit(req, {
+            action: "UPDATE_LEAVE",
+            entity: "LEAVE",
+            entityId: req.params.id,
+            details: { updatedFields: Object.keys(req.body) }
+        });
+
         return res.status(200).json({
             success: true,
             message: "Leave updated successfully",
@@ -242,6 +264,13 @@ const deleteLeaveRequest = async (req, res, next) => {
     try {
 
         await deleteLeave(req.params.id);
+
+        logAudit(req, {
+            action: "DELETE_LEAVE",
+            entity: "LEAVE",
+            entityId: req.params.id,
+            details: { message: "Leave deleted" }
+        });
 
         return res.status(200).json({
             success: true,

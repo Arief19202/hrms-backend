@@ -8,6 +8,7 @@ const attendanceRoutes = require("./routes/attendanceRoutes");
 const leaveRoutes = require("./routes/leaveRoutes");
 const userManagementRoutes = require("./routes/userManagementRoutes");
 const dashboardRoutes = require("./routes/dashboardRoutes");
+const auditLogRoutes = require("./routes/auditLogRoutes");
 
 const errorHandler = require("./middleware/errorHandler");
 
@@ -48,6 +49,7 @@ app.use(["/api/attendance", "/api/attendances"], attendanceRoutes);
 app.use("/api/leaves", leaveRoutes);
 app.use("/api/dashboard", dashboardRoutes);
 app.use("/api/users", userManagementRoutes);
+app.use("/api/audit-logs", auditLogRoutes);
 
 // Global Error Handler
 

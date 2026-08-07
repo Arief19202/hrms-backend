@@ -3,6 +3,7 @@ const {
     loginUser,
     getCurrentUser
 } = require("../services/authService");
+const { logAudit } = require("../utils/auditLogger");
 
 const register = async (req, res, next) => {
 
@@ -18,6 +19,13 @@ const register = async (req, res, next) => {
             employee_id: newUser.employee_id,
             created_at: newUser.created_at
         };
+
+        logAudit(req, {
+            action: "REGISTER",
+            entity: "AUTH",
+            entityId: newUser.id,
+            details: { email: newUser.email, name: newUser.name, role: newUser.role }
+        });
 
         return res.status(201).json({
             success: true,
@@ -38,6 +46,23 @@ const login = async (req, res, next) => {
         const { email, password } = req.body;
 
         const result = await loginUser(email, password);
+
+        const reqWithUser = {
+            ...req,
+            user: {
+                userId: result.user.id,
+                email: result.user.email,
+                name: result.user.name,
+                role: result.user.role
+            }
+        };
+
+        logAudit(reqWithUser, {
+            action: "LOGIN",
+            entity: "AUTH",
+            entityId: result.user.id,
+            details: { message: "User logged in successfully" }
+        });
 
         return res.status(200).json({
             success: true,

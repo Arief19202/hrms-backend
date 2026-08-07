@@ -7,6 +7,7 @@ const {
     updateUserStatus,
     deleteUser
 } = require("../services/userManagementService");
+const { logAudit } = require("../utils/auditLogger");
 
 // Get All Users
 const getUsers = async (req, res, next) => {
@@ -90,6 +91,13 @@ const addUser = async (req, res, next) => {
             employee_id: employee_id || null
         });
 
+        logAudit(req, {
+            action: "CREATE_USER",
+            entity: "USER",
+            entityId: user.id,
+            details: { name: user.name, email: user.email, role: user.role }
+        });
+
         return res.status(201).json({
             success: true,
             message: "User created successfully",
@@ -121,6 +129,13 @@ const editUser = async (req, res, next) => {
             });
 
         }
+
+        logAudit(req, {
+            action: "UPDATE_USER",
+            entity: "USER",
+            entityId: user.id,
+            details: { updatedFields: Object.keys(req.body) }
+        });
 
         return res.status(200).json({
             success: true,
@@ -168,6 +183,13 @@ const resetUserPassword = async (
             });
 
         }
+
+        logAudit(req, {
+            action: "RESET_PASSWORD",
+            entity: "USER",
+            entityId: user.id,
+            details: { targetUserEmail: user.email }
+        });
 
         return res.status(200).json({
             success: true,
@@ -218,6 +240,13 @@ const changeUserStatus = async (
 
         }
 
+        logAudit(req, {
+            action: "CHANGE_USER_STATUS",
+            entity: "USER",
+            entityId: user.id,
+            details: { is_active, targetUserEmail: user.email }
+        });
+
         return res.status(200).json({
             success: true,
             message: "User status updated successfully",
@@ -252,6 +281,13 @@ const removeUser = async (
             });
 
         }
+
+        logAudit(req, {
+            action: "DELETE_USER",
+            entity: "USER",
+            entityId: user.id,
+            details: { targetUserEmail: user.email, targetUserName: user.name }
+        });
 
         return res.status(200).json({
             success: true,
