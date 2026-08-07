@@ -127,6 +127,12 @@ const removeDepartment = async (req, res, next) => {
         });
 
     } catch (error) {
+        if (error.code === "23503") {
+            return res.status(400).json({
+                success: false,
+                message: "Cannot delete department because it has active employees assigned to it."
+            });
+        }
         next(error);
     }
 };

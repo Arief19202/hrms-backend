@@ -85,6 +85,12 @@ const update = async (id, departmentData) => {
 };
 
 const remove = async (id) => {
+    // Unlink employees from this department to prevent foreign key constraint violations
+    await supabase
+        .from("employees")
+        .update({ department_id: null })
+        .eq("department_id", id);
+
     const { data, error } = await supabase
         .from("departments")
         .delete()
