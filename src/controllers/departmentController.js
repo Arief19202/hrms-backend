@@ -102,10 +102,33 @@ const editDepartment = async (req, res, next) => {
 };
 
 const removeDepartment = async (req, res, next) => {
-    return res.status(400).json({
-        success: false,
-        message: "Departments cannot be deleted in this company."
-    });
+    try {
+
+        const department = await deleteDepartment(req.params.id);
+
+        if (!department) {
+            return res.status(404).json({
+                success: false,
+                message: "Department not found"
+            });
+        }
+
+        logAudit(req, {
+            action: "DELETE_DEPARTMENT",
+            entity: "DEPARTMENT",
+            entityId: req.params.id,
+            details: { department }
+        });
+
+        res.status(200).json({
+            success: true,
+            message: "Department deleted successfully",
+            data: department
+        });
+
+    } catch (error) {
+        next(error);
+    }
 };
 
 module.exports = {
