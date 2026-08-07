@@ -4,6 +4,7 @@ const router = express.Router();
 const {
     register,
     login,
+    logout,
     me
 } = require("../controllers/authController");
 
@@ -30,6 +31,12 @@ router.post(
     loginValidationRules,
     validate,
     login
+);
+
+router.post(
+    "/logout",
+    authenticate,
+    logout
 );
 
 router.get(

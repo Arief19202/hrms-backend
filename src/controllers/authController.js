@@ -85,6 +85,28 @@ const login = async (req, res, next) => {
 
 };
 
+const logout = async (req, res, next) => {
+
+    try {
+
+        logAudit(req, {
+            action: "LOGOUT",
+            entity: "AUTH",
+            entityId: req.user?.userId || req.user?.id,
+            details: { message: "User logged out successfully" }
+        });
+
+        return res.status(200).json({
+            success: true,
+            message: "Logged out successfully"
+        });
+
+    } catch (error) {
+        next(error);
+    }
+
+};
+
 const me = async (req, res, next) => {
 
     try {
@@ -105,5 +127,6 @@ const me = async (req, res, next) => {
 module.exports = {
     register,
     login,
+    logout,
     me
 };
